@@ -21,12 +21,15 @@ const worker = new Worker(bundle.mainWorker!);
 const logger = new duckdb.ConsoleLogger();
 const db = new duckdb.AsyncDuckDB(logger, worker);
 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
 const conn = await db.connect();
+// duckdb wasm officially available extensions https://duckdb.org/docs/api/wasm/extensions
 await conn.query(`
-  INSTALL spatial;
-  LOAD spatial;
+    INSTALL json;
+    LOAD json;
+    INSTALL parquet;
+    LOAD parquet;
 `);
-await conn.close();
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
