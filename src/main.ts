@@ -21,6 +21,12 @@ const worker = new Worker(bundle.mainWorker!);
 const logger = new duckdb.ConsoleLogger();
 const db = new duckdb.AsyncDuckDB(logger, worker);
 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+const conn = await db.connect();
+await conn.query(`
+  INSTALL spatial;
+  LOAD spatial;
+`);
+await conn.close();
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
