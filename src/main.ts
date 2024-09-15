@@ -21,3 +21,19 @@ const worker = new Worker(bundle.mainWorker!);
 const logger = new duckdb.ConsoleLogger();
 const db = new duckdb.AsyncDuckDB(logger, worker);
 await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
+
+document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
+  <div>
+    <h1>duckdb-experiment</h1>
+    <input type="file" id="input" multiple />
+  </div>
+`;
+
+const inputElement = document.getElementById("input")!;
+inputElement.addEventListener("change", handleFiles, false);
+
+function handleFiles(this: HTMLInputElement) {
+  const fileList = this.files; /* now you can work with the file list */
+  const file = fileList![0];
+  console.log(file);
+}
