@@ -41,8 +41,21 @@ document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
 const inputElement = document.getElementById("input")!;
 inputElement.addEventListener("change", handleFiles, false);
 
-function handleFiles(this: HTMLInputElement) {
+async function handleFiles(this: HTMLInputElement) {
   const fileList = this.files; /* now you can work with the file list */
   const file = fileList![0];
   console.log(file);
+  const fileName = file.name;
+
+  // https://duckdb.org/docs/api/wasm/data_ingestion
+  await db.registerFileHandle(
+    fileName,
+    file,
+    duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
+    true
+  );
+  const queryResult = await conn.query(`SELECT * FROM ${fileName};`);
+
+  const tableAsJson = queryResult.toArray().map((row: any) => row.toJSON());
+  console.log(tableAsJson);
 }
