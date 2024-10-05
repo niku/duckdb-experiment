@@ -29,12 +29,16 @@ await conn.query(`
     LOAD json;
     INSTALL parquet;
     LOAD parquet;
+    INSTALL spatial;
+    LOAD spatial;
 `);
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
   <div>
     <h1>duckdb-experiment</h1>
     <input type="file" id="input" multiple />
+    <br />
+    <button id="loadxlsx">Load XLSX via http</button>
   </div>
 `;
 
@@ -58,4 +62,16 @@ async function handleFiles(this: HTMLInputElement) {
 
   const tableAsJson = queryResult.toArray().map((row: any) => row.toJSON());
   console.log(tableAsJson);
+}
+
+const loadxlsxElement = document.getElementById("loadxlsx")!;
+loadxlsxElement.addEventListener("click", loadxlsx, false);
+
+async function loadxlsx(this: HTMLInputElement) {
+  const queryResult = await conn.query(
+    `SELECT * FROM ST_READ('http://localhost:5173/book1.xlsx');`
+  );
+
+  const tableAsJson = queryResult.toArray().map((row: any) => row.toJSON());
+  console.table(tableAsJson);
 }
