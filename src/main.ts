@@ -27,19 +27,14 @@ const conn = await db.connect();
 await conn.query(`
     INSTALL json;
     LOAD json;
-    INSTALL parquet;
-    LOAD parquet;
-    INSTALL spatial;
-    LOAD spatial;
+    INSTALL excel;
+    LOAD excel;
 `);
 
 document.querySelector<HTMLDivElement>("#app")!.innerHTML = `
-  <div>
-    <h1>duckdb-experiment</h1>
-    <input type="file" id="input" multiple />
-    <br />
-    <button id="loadxlsx">Load XLSX via http</button>
-  </div>
+  <h1>duckdb-experiment</h1>
+  <input type="file" id="input" multiple />
+  <div id="output"></div>
 `;
 
 const inputElement = document.getElementById("input")!;
@@ -58,20 +53,35 @@ async function handleFiles(this: HTMLInputElement) {
     duckdb.DuckDBDataProtocol.BROWSER_FILEREADER,
     true
   );
-  const queryResult = await conn.query(`SELECT * FROM ${fileName};`);
-
-  const tableAsJson = queryResult.toArray().map((row: any) => row.toJSON());
-  console.log(tableAsJson);
-}
-
-const loadxlsxElement = document.getElementById("loadxlsx")!;
-loadxlsxElement.addEventListener("click", loadxlsx, false);
-
-async function loadxlsx(this: HTMLInputElement) {
   const queryResult = await conn.query(
-    `SELECT * FROM ST_READ('http://localhost:5173/book1.xlsx');`
+    `SELECT * FROM read_xlsx('${fileName}');`
   );
 
   const tableAsJson = queryResult.toArray().map((row: any) => row.toJSON());
-  console.table(tableAsJson);
+  renderTable(tableAsJson);
+}
+
+function renderTable(data: any) {
+  const outputElement = document.getElementById("output")!;
+  outputElement.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          ${Object.keys(data[0])
+            .map((key) => `<th>${key}</th>`)
+            .join("")}
+        </tr>
+      </thead>
+      <tbody>
+        ${data
+          .map(
+            (row: any) =>
+              `<tr>${Object.values(row)
+                .map((value: any) => `<td>${value}</td>`)
+                .join("")}</tr>`
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
 }
